@@ -16,15 +16,30 @@ from flask_bootstrap import Bootstrap
 # from werkzeug import secure_filename
 
 from lib.upload_file import uploadfile
+from flask import Flask
+from flask_httpauth import HTTPBasicAuth
+from werkzeug.security import generate_password_hash, check_password_hash
+
+auth = HTTPBasicAuth()
+
+users = {
+    "admin_user": generate_password_hash("Admin_User123")
+}
+
+@auth.verify_password
+def verify_password(username, password):
+    if username in users and \
+            check_password_hash(users.get(username), password):
+        return username
 
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'hard to guess string'
-app.config['UPLOAD_FOLDER'] = 'data/'
+app.config['UPLOAD_FOLDER'] = os.environ.get('UPLOAD_FOLDER')
 app.config['THUMBNAIL_FOLDER'] = 'data/thumbnail/'
-app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024
+app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024 * 1024
 
-ALLOWED_EXTENSIONS = set(['txt', 'gif', 'png', 'jpg', 'jpeg', 'bmp', 'rar', 'zip', '7zip', 'doc', 'docx'])
+ALLOWED_EXTENSIONS = set(['txt', 'gif', 'png', 'jpg', 'jpeg', 'bmp', 'rar', 'zip', '7zip', 'doc', 'docx','csv','pdf','xlsx','xml','tar','tar.gz'])
 IGNORED_FILES = set(['.gitignore'])
 
 bootstrap = Bootstrap(app)
@@ -61,11 +76,11 @@ def create_thumbnail(image):
         return True
 
     except:
-        print traceback.format_exc()
+        print(traceback.format_exc())
         return False
 
-
 @app.route("/upload", methods=['GET', 'POST'])
+@auth.login_required
 def upload():
     if request.method == 'POST':
         files = request.files['file']
@@ -112,6 +127,7 @@ def upload():
 
 
 @app.route("/delete/<string:filename>", methods=['DELETE'])
+@auth.login_required
 def delete(filename):
     file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
     file_thumb_path = os.path.join(app.config['THUMBNAIL_FOLDER'], filename)
@@ -145,4 +161,4 @@ def index():
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, host= "0.0.0.0")
