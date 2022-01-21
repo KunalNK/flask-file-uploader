@@ -33,7 +33,7 @@ jobs:
         path: "."
             
     - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag ${{secrets.DOCKER_USER}}/file-server:${{GITHUB_REF}}
+      run: docker build . --file Dockerfile --tag ${{secrets.DOCKER_USER}}/file-server:${GITHUB_REF##*/}
       
     - name: Docker Push
-      run: docker push ${{secrets.DOCKER_USER}}/file-server:${{GITHUB_REF}}
+      run: docker push ${{secrets.DOCKER_USER}}/file-server:${GITHUB_REF##*/}
