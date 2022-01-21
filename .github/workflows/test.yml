@@ -32,7 +32,7 @@ jobs:
       with:
         path: "."
             
-    - name: Build the Docker image
+    - name: Build the Docker images
       run: docker build -t ${{secrets.DOCKER_USER}}/file-server:${GITHUB_REF##*/} .
       
     - name: Docker Push
